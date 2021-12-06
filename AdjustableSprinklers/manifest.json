@@ -1,0 +1,10 @@
+﻿{
+  "Name": "Adjustable Sprinklers",
+  "Author": "EdgyBox",
+  "Version": "1.0.0",
+  "Description": "Easily adjust which tiles are watered by a sprinkler.",
+  "UniqueID": "EdgyBox.AdjustableSprinklers",
+  "EntryDll": "AdjustableSprinklers.dll",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": []
+}
