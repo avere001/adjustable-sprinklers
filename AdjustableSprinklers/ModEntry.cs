@@ -25,7 +25,7 @@ namespace AdjustableSprinklers
             SprinklerData.Initialize(Helper);
 
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
-            // helper.Events.Input.CursorMoved += this.OnCursorMoved;
+            helper.Events.Display.Rendered += this.OnRendered;
 
             var harmony = new Harmony(this.ModManifest.UniqueID);
 
@@ -74,6 +74,18 @@ namespace AdjustableSprinklers
                 }
 
                 SprinklerData.WriteSprinklerData(SelectedSprinkler, data);
+            }
+        }
+
+        private void OnRendered(object sender, RenderedEventArgs e)
+        {
+            if (SelectedSprinkler is null)
+                return;
+
+            var data = SprinklerData.ReadSprinklerData(SelectedSprinkler, true);
+            foreach (var sprinklerTile in data.SprinklerTiles)
+            {
+                DrawUtils.DrawSprite(sprinklerTile, SpriteInfo.BLUE_HIGHLIGHT);
             }
         }
     }
