@@ -24,9 +24,20 @@ namespace AdjustableSprinklers
             return $"sprinkler-{sprinkler.tileLocation.X}-{sprinkler.tileLocation.Y}";
         }
         
-        public static SprinklerData ReadSprinklerData(Object sprinkler)
+        public static SprinklerData ReadSprinklerData(Object sprinkler, bool autoPopulate)
         {
-            return Helper.Data.ReadSaveData<SprinklerData>(GetSaveKey(sprinkler));
+            var data = Helper.Data.ReadSaveData<SprinklerData>(GetSaveKey(sprinkler));
+            if (autoPopulate && data is null)
+            {
+                data = new SprinklerData
+                {
+                    SprinklerTiles = sprinkler.GetSprinklerTiles(),
+                    UnusedTileCount = 0
+                };
+                WriteSprinklerData(sprinkler, data);
+            }
+            return data;
+            
         }
 
         public static void WriteSprinklerData(Object sprinkler, SprinklerData data)

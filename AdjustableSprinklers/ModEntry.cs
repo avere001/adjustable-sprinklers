@@ -59,11 +59,7 @@ namespace AdjustableSprinklers
                     // Not currently configuring a sprinkler
                     return;
 
-                // We don't need the result of this call
-                // We are running this to generate the config if it doesn't exist
-                SelectedSprinkler.GetSprinklerTiles();
-                
-                var data = SprinklerData.ReadSprinklerData(SelectedSprinkler);
+                var data = SprinklerData.ReadSprinklerData(SelectedSprinkler, true);
                 if (data.SprinklerTiles.Contains(grabTile))
                 {
                     data.SprinklerTiles.Remove(grabTile);

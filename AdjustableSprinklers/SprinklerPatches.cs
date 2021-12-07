@@ -25,17 +25,11 @@ public class SprinklerPatches
             if (!__instance.IsSprinkler())
                 return;
             
-            var data = SprinklerData.ReadSprinklerData(__instance);
-            if (data is null)
+            var data = SprinklerData.ReadSprinklerData(__instance, false);
+            if (data is not null)
             {
-                data = new SprinklerData
-                {
-                    SprinklerTiles = __result,
-                    UnusedTileCount = 0
-                };
-                SprinklerData.WriteSprinklerData(__instance, data);
+                __result = data.SprinklerTiles;
             }
-            __result = data.SprinklerTiles;
         }
         catch (Exception ex)
         {
