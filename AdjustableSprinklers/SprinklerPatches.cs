@@ -18,26 +18,28 @@ public class SprinklerPatches
         Helper = helper;
     }
 
-    public static bool GetSprinklerTiles_Prefix(StardewValley.Object __instance, ref List<Vector2> __result)
+    public static void GetSprinklerTiles_Postfix(StardewValley.Object __instance, ref List<Vector2> __result)
     {
-        if (!__instance.IsSprinkler())
-            return true;
-
         try
         {
-            var sprinklerData = SprinklerData.ReadSprinklerData(__instance);
-
-            // If it is not configured, then we let the unpatched method run
-            if (sprinklerData is null)
-                return true;
+            if (!__instance.IsSprinkler())
+                return;
             
-            __result = sprinklerData.SprinklerTiles;
-            return false;
+            var data = SprinklerData.ReadSprinklerData(__instance);
+            if (data is null)
+            {
+                data = new SprinklerData
+                {
+                    SprinklerTiles = __result,
+                    UnusedTileCount = 0
+                };
+                SprinklerData.WriteSprinklerData(__instance, data);
+            }
+            __result = data.SprinklerTiles;
         }
         catch (Exception ex)
         {
-            Monitor.Log($"Failed in GetSprinklerTiles_Prefix:\n{ex}", LogLevel.Error);
-            return true; // run original logic
+            Monitor.Log($"Failed in {nameof(GetSprinklerTiles_Postfix)}:\n{ex}", LogLevel.Error);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace AdjustableSprinklers
             harmony.Patch(
                 original: AccessTools.Method(typeof(StardewValley.Object),
                     nameof(StardewValley.Object.GetSprinklerTiles)),
-                prefix: new HarmonyMethod(typeof(SprinklerPatches), nameof(SprinklerPatches.GetSprinklerTiles_Prefix))
+                postfix: new HarmonyMethod(typeof(SprinklerPatches), nameof(SprinklerPatches.GetSprinklerTiles_Postfix))
             );
         }
 
@@ -83,13 +83,11 @@ namespace AdjustableSprinklers
                     // Not currently configuring a sprinkler
                     return;
 
+                // We don't need the result of this call
+                // We are running this to generate the config if it doesn't exist
+                SelectedSprinkler.GetSprinklerTiles();
+                
                 var data = SprinklerData.ReadSprinklerData(SelectedSprinkler);
-                if (data is null)
-                {
-                    data = new SprinklerData();
-                    data.SprinklerTiles = SelectedSprinkler.GetSprinklerTiles();
-                    data.UnusedTileCount = 0;
-                }
                 if (data.SprinklerTiles.Contains(grabTile))
                 {
                     data.SprinklerTiles.Remove(grabTile);
