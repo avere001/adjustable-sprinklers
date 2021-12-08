@@ -42,8 +42,6 @@ namespace AdjustableSprinklers
 
     static class DrawUtils
     {
-
-
         /// <summary>
         /// Draws a highlight on the tile at the specified location.
         /// Adapted from <see cref="StardewValley.Object.drawPlacementBounds(SpriteBatch, GameLocation)"/>
@@ -61,7 +59,7 @@ namespace AdjustableSprinklers
                 Game1.mouseCursors,
                 tileScreenLocation,
                 sprite.spriteBounds,
-                sprite.tint, 0.0f, Vector2.Zero,
+                sprite.tint * 0.6f, 0.0f, Vector2.Zero,
                 Game1.pixelZoom, SpriteEffects.None,
                 0.01f);
         }

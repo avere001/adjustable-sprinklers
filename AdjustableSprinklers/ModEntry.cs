@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Force.DeepCloner;
 // using ConfigurableSprinklers;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -8,7 +9,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
-using Object = StardewValley.Object;
 
 namespace AdjustableSprinklers
 {
@@ -44,11 +44,8 @@ namespace AdjustableSprinklers
             if (!e.Button.IsActionButton())
                 return;
 
-            // print button presses to the console window
-            Monitor.Log($"{Game1.player.Name} pressed {e.Button}.", LogLevel.Debug);
-
-            var grabTile = Game1.player.GetGrabTile();
-            Game1.currentLocation.objects.TryGetValue(grabTile, out var selectedObject);
+            var targetTile = Game1.options.gamepadControls ? e.Cursor.GrabTile : e.Cursor.Tile;
+            Game1.currentLocation.objects.TryGetValue(targetTile, out var selectedObject);
             if (selectedObject is not null && selectedObject.IsSprinkler())
             {
                 SelectedSprinkler = SelectedSprinkler is null ? selectedObject : null;
@@ -60,17 +57,26 @@ namespace AdjustableSprinklers
                     return;
 
                 var data = SprinklerData.ReadSprinklerData(SelectedSprinkler, true);
-                if (data.SprinklerTiles.Contains(grabTile))
+
+                if (data.SprinklerTiles.Contains(targetTile))
                 {
-                    data.SprinklerTiles.Remove(grabTile);
+                    data.SprinklerTiles.Remove(targetTile);
                     data.UnusedTileCount += 1;
+                    var tileGraph = data.SprinklerTiles.DeepClone().AddItem(SelectedSprinkler.TileLocation);
+                    var disconnected = GraphUtils.GetDisconnected(tileGraph, SelectedSprinkler.TileLocation);
+                    foreach (var tile in disconnected)
+                    {
+                        data.SprinklerTiles.Remove(tile);
+                        data.UnusedTileCount += 1;
+                    }
                 }
                 else
                 {
-                    if (data.UnusedTileCount <= 0) return;
-
-                    data.SprinklerTiles.Add(grabTile);
-                    data.UnusedTileCount -= 1;
+                    if (GetValidNewTiles().Contains(targetTile))
+                    {
+                        data.SprinklerTiles.Add(targetTile);
+                        data.UnusedTileCount -= 1;
+                    }
                 }
 
                 SprinklerData.WriteSprinklerData(SelectedSprinkler, data);
@@ -83,10 +89,65 @@ namespace AdjustableSprinklers
                 return;
 
             var data = SprinklerData.ReadSprinklerData(SelectedSprinkler, true);
+            var validNewTiles = GetValidNewTiles();
+
+            var cursor = Helper.Input.GetCursorPosition();
+            var targetTile = Game1.options.gamepadControls ? cursor.GrabTile : cursor.Tile;
+            var graph = data.SprinklerTiles.DeepClone();
+            graph.Add(SelectedSprinkler.TileLocation);
+            graph.Remove(targetTile);
+            var tilesToRemove = GraphUtils.GetDisconnected(graph, SelectedSprinkler.TileLocation).ToArray()
+                .AddToArray(targetTile);
+            // tilesToRemove.AddItem(targetTile);
+
             foreach (var sprinklerTile in data.SprinklerTiles)
             {
-                DrawUtils.DrawSprite(sprinklerTile, SpriteInfo.BLUE_HIGHLIGHT);
+                DrawUtils.DrawSprite(sprinklerTile,
+                    tilesToRemove.Contains(sprinklerTile) ? SpriteInfo.RED_HIGHLIGHT : SpriteInfo.GREEN_HIGHLIGHT);
             }
+
+            foreach (var validNewTile in validNewTiles)
+            {
+                if (!validNewTile.Equals(targetTile))
+                {
+                    if (DateTime.Now.Millisecond % 1000 <= 500)
+                    {
+                        DrawUtils.DrawSprite(validNewTile, SpriteInfo.GREY_HIGHLIGHT);
+                    }
+                }
+                else
+                {
+                    DrawUtils.DrawSprite(validNewTile, SpriteInfo.BLUE_HIGHLIGHT);
+                }
+            }
+        }
+
+        private HashSet<Vector2> GetValidNewTiles()
+        {
+            var data = SprinklerData.ReadSprinklerData(SelectedSprinkler, true);
+
+            var adjacentTiles = new HashSet<Vector2>();
+
+            // If no unused tiles exist, then we cannot add new tiles
+            if (data.UnusedTileCount == 0) return adjacentTiles;
+
+            void AddAdjacentTiles(Vector2 vector2)
+            {
+                adjacentTiles.Add(vector2 - new Vector2(0, 1));
+                adjacentTiles.Add(vector2 - new Vector2(0, -1));
+                adjacentTiles.Add(vector2 - new Vector2(1, 0));
+                adjacentTiles.Add(vector2 - new Vector2(-1, 0));
+            }
+
+            AddAdjacentTiles(SelectedSprinkler.TileLocation);
+            foreach (var sprinklerTile in data.SprinklerTiles)
+            {
+                AddAdjacentTiles(sprinklerTile);
+            }
+
+            adjacentTiles.RemoveWhere(x => data.SprinklerTiles.Contains(x) || x.Equals(SelectedSprinkler.TileLocation));
+
+            return adjacentTiles;
         }
     }
 }
