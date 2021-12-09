@@ -18,10 +18,9 @@ namespace AdjustableSprinklers
         public int UnusedTileCount { get; set; }
         // public int ExampleNumber { get; set; }
 
-        public static string GetSaveKey(Object sprinkler)
+        private static string GetSaveKey(Object sprinkler)
         {
-            var mapId = Game1.currentLocation.map.Id;
-            return $"sprinkler-{sprinkler.tileLocation.X}-{sprinkler.tileLocation.Y}";
+            return $"sprinkler-{sprinkler.TileLocation.X}-{sprinkler.TileLocation.Y}";
         }
         
         public static SprinklerData ReadSprinklerData(Object sprinkler, bool autoPopulate)

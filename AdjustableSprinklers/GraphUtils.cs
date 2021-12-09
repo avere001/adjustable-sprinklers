@@ -5,7 +5,7 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace AdjustableSprinklers
 {
-    public class GraphUtils
+    public static class GraphUtils
     {
         public static IEnumerable<Vector2> GetNeighbors(IEnumerable<Vector2> allVectors, Vector2 vector)
         {
