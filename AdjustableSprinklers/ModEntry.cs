@@ -102,8 +102,8 @@ namespace AdjustableSprinklers
 
             foreach (var sprinklerTile in data.SprinklerTiles)
             {
-                DrawUtils.DrawSprite(sprinklerTile,
-                    tilesToRemove.Contains(sprinklerTile) ? SpriteInfo.RED_HIGHLIGHT : SpriteInfo.GREEN_HIGHLIGHT);
+                DrawUtils.DrawTileHighlight(sprinklerTile,
+                    tilesToRemove.Contains(sprinklerTile) ? Color.DarkRed : Color.Green);
             }
 
             foreach (var validNewTile in validNewTiles)
@@ -112,12 +112,12 @@ namespace AdjustableSprinklers
                 {
                     if (DateTime.Now.Millisecond % 1000 <= 500)
                     {
-                        DrawUtils.DrawSprite(validNewTile, SpriteInfo.GREY_HIGHLIGHT);
+                        DrawUtils.DrawTileHighlight(validNewTile, Color.DimGray);
                     }
                 }
                 else
                 {
-                    DrawUtils.DrawSprite(validNewTile, SpriteInfo.BLUE_HIGHLIGHT);
+                    DrawUtils.DrawTileHighlight(validNewTile, Color.Blue);
                 }
             }
         }

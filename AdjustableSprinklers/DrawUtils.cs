@@ -9,90 +9,29 @@ using System.Threading.Tasks;
 
 namespace AdjustableSprinklers
 {
-    public struct SpriteInfo
-    {
-        public Texture2D spriteSheet;
-        public Rectangle spriteBounds;
-        public Color tint;
-
-        public SpriteInfo(Texture2D spriteSheet, int spriteXIndex, int spriteYIndex, Color tint)
-        {
-            this.spriteSheet = spriteSheet;
-            this.spriteBounds = new Rectangle(spriteXIndex, spriteYIndex, 16, 16);
-            this.tint = tint;
-        }
-
-        public static SpriteInfo RED_HIGHLIGHT;
-        public static SpriteInfo GREEN_HIGHLIGHT;
-        public static SpriteInfo BLUE_HIGHLIGHT;
-        public static SpriteInfo GREY_HIGHLIGHT;
-
-        const int GREEN_HIGHLIGHT_X_INDEX = 194;
-        const int RED_HIGHLIGHT_X_INDEX = 210;
-        const int HIGHLIGHT_Y_INDEX = 388;
-
-        static SpriteInfo()
-        {
-            RED_HIGHLIGHT = new SpriteInfo(Game1.mouseCursors, RED_HIGHLIGHT_X_INDEX, HIGHLIGHT_Y_INDEX, Color.White);
-            GREEN_HIGHLIGHT = new SpriteInfo(Game1.mouseCursors, GREEN_HIGHLIGHT_X_INDEX, HIGHLIGHT_Y_INDEX, Color.White);
-            BLUE_HIGHLIGHT = new SpriteInfo(Game1.mouseCursors, GREEN_HIGHLIGHT_X_INDEX, HIGHLIGHT_Y_INDEX, Color.Blue);
-            GREY_HIGHLIGHT = new SpriteInfo(Game1.mouseCursors, RED_HIGHLIGHT_X_INDEX, HIGHLIGHT_Y_INDEX, Color.Green);
-        }
-    }
-
     static class DrawUtils
     {
-        /// <summary>
-        /// Draws a highlight on the tile at the specified location.
-        /// Adapted from <see cref="StardewValley.Object.drawPlacementBounds(SpriteBatch, GameLocation)"/>
-        /// </summary>
-        /// <param name="x">The x position of the tile.</param>
-        /// <param name="y">The y position of the tile.</param>
-        /// <param name="spriteIndex">Index of the sprite.</param>
-        /// <param name="tint">The color to shade the texture with.</param>
-        public static void DrawSprite(Vector2 tile, SpriteInfo sprite)
+        public static void DrawTileHighlight(Vector2 tile, Color tint)
         {
-            Vector2 viewportLocation = new Vector2(Game1.viewport.X, Game1.viewport.Y);
-            Vector2 tileScreenLocation = (tile * Game1.tileSize) - viewportLocation;
-
+            // Some mathematical magic to allow us to change the color, rather than add a tint
+            // https://stackoverflow.com/a/18576834
+            var greenAverageColor = new Color(94f, 173f, 59f, 0.49f);
+            var q = (greenAverageColor.R + greenAverageColor.G + greenAverageColor.B) / 3f;
+            q /= greenAverageColor.A; // optional - undo alpha premultiplication
+            tint = new Color(tint.R * q, tint.G * q, tint.B * q, tint.A * greenAverageColor.A);
+            
+            var viewportLocation = new Vector2(Game1.viewport.X, Game1.viewport.Y);
+            var tileScreenLocation = tile * Game1.tileSize - viewportLocation;
+            
+            const int highlightSpriteTileX = 194;
+            const int highlightSpriteTileY = 388;
             Game1.spriteBatch.Draw(
-                Game1.mouseCursors,
+                Game1.mouseCursors,  // Bad name for this, has nothing to with cursors specifically
                 tileScreenLocation,
-                sprite.spriteBounds,
-                sprite.tint * 0.6f, 0.0f, Vector2.Zero,
+                new Rectangle(highlightSpriteTileX, highlightSpriteTileY, 16, 16),
+                tint, 0.0f, Vector2.Zero,
                 Game1.pixelZoom, SpriteEffects.None,
                 0.01f);
-        }
-
-        /// <summary>
-        /// Spawns a water animation.
-        /// Adapted from <see cref="StardewValley.Object.DayUpdate(GameLocation)"/>
-        /// </summary>
-        /// <param name="temporarySprites">The temporary sprites.</param>
-        /// <param name="tileLocation">The tile location.</param>
-        /// <param name="offsetX">The x offset from <paramref name="tileLocation"/>>.</param>
-        /// <param name="offsetY">The y offset from <paramref name="tileLocation"/>>.</param>
-        /// <param name="animationDelay">The animation delay.</param>
-        /// <param name="rotation">The rotation.</param>
-        public static void SpawnWaterAnimation(List<TemporaryAnimatedSprite> temporarySprites, Vector2 tileLocation, float offsetX, float offsetY, int animationDelay, float rotation)
-        {
-            temporarySprites.Add(
-                new TemporaryAnimatedSprite(
-                    rowInAnimationTexture: 29,
-                    position: tileLocation * Game1.tileSize + new Vector2(Game1.tileSize * offsetX, Game1.tileSize * offsetY),
-                    color: Color.White * 0.5f,
-                    animationLength: 4,
-                    flipped: false,
-                    animationInterval: 60f,
-                    numberOfLoops: 100,
-                    sourceRectWidth: -1, sourceRectHeight: -1,
-                    layerDepth: -1f,
-                    delay: animationDelay)
-                {
-                    id = (float)(tileLocation.X * 4000.0 + tileLocation.Y),
-                    rotation = rotation
-                }
-            );
         }
     }
 }
